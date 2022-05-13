@@ -1,6 +1,6 @@
 package com.kot.bot.demo.repository;
 
-import com.kot.bot.demo.model.Photo;
+import com.kot.bot.demo.model.domain.Photo;
 import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
 

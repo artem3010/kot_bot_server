@@ -1,15 +1,18 @@
 package com.kot.bot.demo.service;
 
 import com.kot.bot.demo.client.MessageClient;
+import com.kot.bot.demo.exceptions.RandomAnswerGetException;
+import com.kot.bot.demo.exceptions.RandomPhotoGetException;
 import com.kot.bot.demo.repository.AnswerRepository;
 import com.kot.bot.demo.repository.KotPhotoRepository;
 import com.kot.bot.demo.service.interfaces.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
-import java.io.File;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -23,7 +26,6 @@ public class MessageServiceImpl implements MessageService {
     @Autowired
     private AnswerRepository answerRepository;
 
-    //TODO:: add scheduled method for processing failed messages
     private List<Message> failedMessages = new LinkedList<>();
 
     @Override
@@ -43,20 +45,29 @@ public class MessageServiceImpl implements MessageService {
                         answerRepository.getRandomAnswer()
                                 .orElseThrow(() -> {
                                     failedMessages.add(message);
-                                    return new RuntimeException("Exception in getting answer");
-                                }).getAnswer()
+                                    return new RandomAnswerGetException("Exception in getting answer");
+                                }).getTextMessage()
                 )
                 .build();
         messageClient.sendTextMessage(sendMessage);
     }
 
     private void sendPhoto(Message message) {
-        messageClient.sendPhoto(message.getChatId(), new File(kotPhotoRepository.getRandomPhoto()
+        messageClient.sendPhoto(message.getChatId().toString(), kotPhotoRepository.getRandomPhoto()
                 .orElseThrow(() -> {
-                    failedMessages.add(message);
-                    return new RuntimeException("Exception in getting photo");
-                })
-                .getPath()));
+                    throw new RandomPhotoGetException("Exception in getting photo");
+                }));
+    }
+
+    @Scheduled(fixedRate = 10000)
+    private void processFailedMessages() {
+        if (!failedMessages.isEmpty()) {
+            Iterator<Message> iterator = failedMessages.iterator();
+            while (iterator.hasNext()){
+                processUpdate(iterator.next());
+                iterator.remove();
+            }
+        }
     }
 
 
