@@ -30,7 +30,7 @@ public class Photo {
     private String fileId;
 
     public File getFile(){
-        if(Objects.isNull(path) || Strings.isEmpty(path)){
+        if(Strings.isEmpty(path)){
             throw new FilePathEmptyException("File not found" + path);
         }
         return new File(path);
