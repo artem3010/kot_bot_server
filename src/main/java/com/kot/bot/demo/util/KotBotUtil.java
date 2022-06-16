@@ -15,10 +15,12 @@ public class KotBotUtil {
     @Autowired
     KotPhotoRepository kotPhotoRepository;
 
+    String catFilePath = "./cat";
+
     @PostConstruct
     public void init(){
         //TODO:: add dynamic import of images
-        File folder = new File("src/main/resources/cat");
+        File folder = new File(catFilePath);
         if(kotPhotoRepository.count()!=folder.listFiles().length) {
             kotPhotoRepository.deleteAll();
             File[] photos = folder.listFiles();
